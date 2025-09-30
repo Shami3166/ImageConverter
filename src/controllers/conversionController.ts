@@ -30,16 +30,22 @@ export const convertFile = async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ message: "No file uploaded" });
   }
 
-  // Check if file exists
+  // ✅ IMPROVED: Better file validation
   if (!fs.existsSync(req.file.path)) {
     console.log("❌ Uploaded file not found at path:", req.file.path);
     return res.status(400).json({ message: "Uploaded file not found" });
   }
 
+  // ✅ NEW: Validate file is not empty
+  if (req.file.size === 0) {
+    fsPromises.unlink(req.file.path).catch(() => {});
+    return res.status(400).json({ message: "Uploaded file is empty (0 bytes)" });
+  }
+
   const role = req.user?.role || "guest";
   const size = req.file.size;
 
-  // ✅ UPDATED LIMITS - Guest: 50MB, User: 500MB, Admin: Unlimited
+  // ✅ UPDATED LIMITS - Guest: 100MB, User: 800MB, Admin: Unlimited
   const limits: Record<string, number> = {
     guest: 100 * 1024 * 1024,    // 100 MB for guest users
     user: 800 * 1024 * 1024,    // 800 MB for logged-in users
@@ -129,7 +135,7 @@ export const convertFile = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: "Unsupported file type" });
     }
 
-    // Check if output file was created
+    // ✅ Check if output file was created
     if (!fs.existsSync(outputFile)) {
       throw new Error("Conversion failed - output file was not created");
     }
@@ -160,7 +166,9 @@ export const convertFile = async (req: AuthRequest, res: Response) => {
       
       if (err) {
         console.error("Download error:", err);
-        if (!res.headersSent) res.status(500).json({ message: "Download failed" });
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Download failed" });
+        }
       }
     });
 
@@ -175,15 +183,23 @@ export const convertFile = async (req: AuthRequest, res: Response) => {
       console.error("Cleanup error:", cleanupError);
     }
 
-    // Send error message
-    if (err.message.includes("too long")) {
-      res.status(400).json({ message: err.message });
+    // ✅ IMPROVED: Better error messages for client
+    let errorMessage = err.message || "Conversion failed";
+    
+    if (err.message.includes("VipsJpeg") || err.message.includes("premature") || err.message.includes("JPEG")) {
+      errorMessage = "The image file appears to be corrupted or incomplete. Please try with a different image.";
+    } else if (err.message.includes("empty")) {
+      errorMessage = "The uploaded file is empty. Please select a valid file.";
+    } else if (err.message.includes("unsupported") || err.message.includes("format")) {
+      errorMessage = "The file format is not supported or the file is corrupted.";
+    } else if (err.message.includes("too long")) {
+      errorMessage = err.message; // Keep original message for video duration
     } else if (err.message.includes("FFmpeg") || err.message.includes("conversion")) {
-      res.status(500).json({ 
-        message: "Video conversion failed. The file format may not be supported or FFmpeg may not be installed." 
-      });
-    } else {
-      res.status(500).json({ message: err.message || "Conversion failed" });
+      errorMessage = "Video conversion failed. The file format may not be supported.";
+    }
+
+    if (!res.headersSent) {
+      res.status(500).json({ message: errorMessage });
     }
   }
 };
