@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "build": "tsc",
-    "prestart": "npm run build",
-    "start": "node dist/server.js",
-    "dev": "nodemon --watch src --exec ts-node src/server.ts"
-  },
+"scripts": {
+  "build": "tsc --skipLibCheck",
+  "prestart": "npm run build",
+  "start": "node dist/server.js",
+  "dev": "nodemon --watch src --exec ts-node src/server.ts"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
