@@ -4,9 +4,8 @@ import { Types } from "mongoose";
 import User from "../models/User";
 import { generateToken } from "../utils/jwt";
 import { setAuthCookie, clearAuthCookie } from "../middleware/cookieMiddleware";
+import Conversion from "../models/Conversion";
 
-// @desc Register user
-// @route POST /api/auth/register
 export const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
@@ -28,28 +27,29 @@ export const register = async (req: Request, res: Response) => {
       password: hashedPassword,
     });
 
+    // ✅ FIX: Get conversion count for this user (will be 0 for new user)
+    const conversionCount = await Conversion.countDocuments({ user: user._id });
+
     // Generate token
     const token = generateToken((user._id as Types.ObjectId).toString(), user.role);
 
     // Set HttpOnly cookie
     setAuthCookie(res, token);
 
-    // ✅ FIXED: Use 'id' instead of '_id' for consistency
+    // ✅ FIX: Return conversion count
     return res.status(201).json({
       user: {
-        id: user._id, // ✅ Changed _id to id
+        id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
-      }
+      },
+      conversionsUsed: conversionCount // ← ADD THIS LINE
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err });
   }
 };
-
-// @desc Login user
-// @route POST /api/auth/login
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -66,20 +66,24 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    // ✅ FIX: Get conversion count for this user
+    const conversionCount = await Conversion.countDocuments({ user: user._id });
+
     // Generate token
     const token = generateToken((user._id as Types.ObjectId).toString(), user.role);
 
     // Set HttpOnly cookie
     setAuthCookie(res, token);
 
-    // ✅ FIXED: Use 'id' instead of '_id' for consistency
+    // ✅ FIX: Return conversion count
     return res.status(200).json({
       user: {
-        id: user._id, // ✅ Changed _id to id
+        id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
-      }
+      },
+      conversionsUsed: conversionCount // ← ADD THIS LINE
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err });

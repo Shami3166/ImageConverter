@@ -55,6 +55,7 @@ export const getUserInfo = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // ✅ FIX: Get conversion count
     const conversionsUsed = await Conversion.countDocuments({ user: req.user._id });
 
     res.json({
@@ -65,8 +66,7 @@ export const getUserInfo = async (req: AuthRequest, res: Response) => {
         role: user.role,
       },
       role: user.role,
-      conversionsUsed,
-      // ✅ Removed payment-related info
+      conversionsUsed, // ← This should now work
       message: "Free account - Unlimited conversions"
     });
   } catch (err) {
