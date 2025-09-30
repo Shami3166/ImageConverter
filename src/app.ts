@@ -24,16 +24,29 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like curl, Postman, mobile apps)
+    // Allow requests with no origin (like mobile apps, Postman)
     if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "http://localhost:3000", 
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:3000",
+      "https://convert-craft.vercel.app",
+      "https://imageconverter-acsq.onrender.com", // ✅ Add your Render domain
+      process.env.FRONTEND_URL,
+    ];
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
+    
     console.warn(`❌ Blocked by CORS: ${origin}`);
     return callback(new Error("Not allowed by CORS"));
   },
-  credentials: true, // ✅ Allow cookies
+  credentials: true, // ✅ This is crucial for cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
 app.use(morgan("dev"));

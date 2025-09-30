@@ -6,8 +6,9 @@ export const setAuthCookie = (res: Response, token: string) => {
   res.cookie("auth_token", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "strict" : "lax",
+    sameSite: isProduction ? "none" : "lax", // ✅ Change to "none" for cross-domain
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    domain: isProduction ? ".onrender.com" : undefined // ✅ Add domain for production
   });
 };
 
@@ -17,6 +18,7 @@ export const clearAuthCookie = (res: Response) => {
   res.clearCookie("auth_token", {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "strict" : "lax",
+    sameSite: isProduction ? "none" : "lax", // ✅ Change to "none"
+    domain: isProduction ? ".onrender.com" : undefined // ✅ Add domain for production
   });
 };
