@@ -7,7 +7,7 @@ import path from "path";
  * (⚠️ Note: pdf-lib does not convert directly to images.
  *           If you need PNGs, use a client-side library or an API.)
  */
-export const pdfToPages = async (inputPath: string, outputDir: string) => {
+export const pdfToImages = async (inputPath: string, outputDir: string) => {
   fs.mkdirSync(outputDir, { recursive: true });
 
   const data = await fs.promises.readFile(inputPath);
