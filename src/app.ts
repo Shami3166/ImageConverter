@@ -40,7 +40,7 @@ app.use(cors({
 app.use(morgan("dev"));
 app.use(cookieParser());
 
-// ❌ REMOVED: Webhook route - No payments needed
+
 
 // ✅ Normal middleware and routes after this
 app.use(express.json());
@@ -50,10 +50,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/convert", conversionRoutes);
 app.use("/api/user", userRoutes);
-// ❌ REMOVED: paymentRoutes usage
+
 app.use("/api/contact", contactRoutes);
 app.use("/api", converterRoutes);
-
+app.get("/", (req, res) => {
+  res.send({
+    message: "✅ Image Converter API is running!",
+    docs: "/api",
+  });
+});
 // ✅ Error handler
 app.use(errorHandler);
 
