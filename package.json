@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-"scripts": {
-  "build": "tsc --skipLibCheck",
-  "prestart": "npm run build",
-  "start": "node dist/server.js",
-  "dev": "nodemon --watch src --exec ts-node src/server.ts"
-},
+  "scripts": {
+    "build": "tsc --skipLibCheck",
+    "prestart": "npm run build",
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch src --exec ts-node src/server.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -28,7 +28,6 @@
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "pdf-lib": "^1.17.1",
-    "pdf-poppler": "^0.2.1",
     "pdf2pic": "^3.2.0",
     "sharp": "^0.34.3",
     "stripe": "^18.5.0",

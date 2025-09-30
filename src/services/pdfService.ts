@@ -1,31 +1,31 @@
 import { PDFDocument } from "pdf-lib";
 import fs from "fs";
 import path from "path";
-//@ts-ignore
-import * as poppler from "pdf-poppler";
-
-// ✅ tell Node where Poppler is (your path)
-process.env.PATH = process.env.PATH + ";C:\\Users\\Lahori Computers\\Downloads\\poppler-25.07.0\\Library\\bin";
 
 /**
- * Convert PDF pages into PNG images
+ * Extract pages from PDF and save them as new PDFs
+ * (⚠️ Note: pdf-lib does not convert directly to images.
+ *           If you need PNGs, use a client-side library or an API.)
  */
-export const pdfToImages = async (inputPath: string, outputDir: string) => {
+export const pdfToPages = async (inputPath: string, outputDir: string) => {
   fs.mkdirSync(outputDir, { recursive: true });
 
-  const opts: poppler.ConvertOptions = {
-    format: "png",
-    out_dir: outputDir,
-    out_prefix: path.basename(inputPath, path.extname(inputPath)),
-    scale: 1024, // better quality
-  };
+  const data = await fs.promises.readFile(inputPath);
+  const pdfDoc = await PDFDocument.load(data);
 
-  await poppler.convert(inputPath, opts);
+  const results: string[] = [];
 
-  const results = fs
-    .readdirSync(outputDir)
-    .filter((f) => f.endsWith(".png"))
-    .map((f) => path.join(outputDir, f));
+  for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+    const newPdf = await PDFDocument.create();
+    const [copiedPage] = await newPdf.copyPages(pdfDoc, [i]);
+    newPdf.addPage(copiedPage);
+
+    const pdfBytes = await newPdf.save();
+    const outFile = path.join(outputDir, `page-${i + 1}.pdf`);
+    fs.writeFileSync(outFile, pdfBytes);
+
+    results.push(outFile);
+  }
 
   return results;
 };
